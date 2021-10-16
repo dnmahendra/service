@@ -3,29 +3,22 @@
 package handlers
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/dimfeld/httptreemux/v5"
+	"github.com/dnmahendra/service/business/mid"
+	"github.com/dnmahendra/service/foundation/web"
 )
 
 // API constructs an http.Handler with all application routes defined.
-func API(build string, shutdown chan os.Signal, log *log.Logger) *httptreemux.ContextMux {
-	tm := httptreemux.NewContextMux()
+func API(build string, shutdown chan os.Signal, log *log.Logger) *web.App {
+	app := web.NewApp(shutdown, mid.Logger(log), mid.Errors(log), mid.Metrics(), mid.Panics(log))
 
-	h := func(w http.ResponseWriter, r *http.Request) {
-		status := struct {
-			Status string
-		}{
-			Status: "OK",
-		}
-
-		json.NewEncoder(w).Encode(status)
+	check := check{
+		log: log,
 	}
+	app.Handle(http.MethodGet, "/readiness", check.readiness)
 
-	tm.Handle(http.MethodGet, "/test", h)
-
-	return tm
+	return app
 }
