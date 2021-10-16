@@ -38,3 +38,6 @@ _testmain.go
 *.exe
 //*.test
 .vscode/tasks.json
+
+private.pem
+public.pem
