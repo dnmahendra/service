@@ -9,3 +9,12 @@ runa:
 tidy:
 	go mod tidy
 	go mod vendor
+
+# ==============================================================================
+# Running tests within the local computer
+
+test:
+	go test -v ./... -count=1
+	staticcheck ./...
+
+# ==============================================================================
