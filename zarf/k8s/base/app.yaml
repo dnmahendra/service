@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sales-api # Base POD name
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sales-api # Selector for POD name search.
+  template:
+    metadata:
+      labels:
+        app: sales-api
+    spec:
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
+      containers:
+        - name: zipkin
+          image: openzipkin/zipkin:2.21
+          ports:
+            - name: zipkin
+              containerPort: 9411
+        - name: app
+          image: sales-api-amd64:1.0
+          env:
+            - name: SALES_DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: db_host
+            - name: SALES_ZIPKIN_REPORTER_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: zipkin_reporter_uri
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: KUBERNETES_PODNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: KUBERNETES_NAMESPACE_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: KUBERNETES_NODENAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          ports:
+            - name: app
+              containerPort: 3000
+            - name: app-debug
+              containerPort: 4000
+          readinessProbe: # readiness probes mark the service available to accept traffic.
+            httpGet:
+              path: /readiness
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 2
+          livenessProbe: # liveness probes mark the service alive or dead (to be restarted).
+            httpGet:
+              path: /liveness
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sales-api
+spec:
+  selector:
+    service: sales-api
+  ports:
+    - name: zipkin
+      port: 9411
+      targetPort: zipkin
+    - name: app
+      port: 3000
+      targetPort: app
+    - name: app-debug
+      port: 4000
+      targetPort: app-debug
