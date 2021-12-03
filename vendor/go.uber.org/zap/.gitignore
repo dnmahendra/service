@@ -1,15 +1,3 @@
-# Binaries
-app/services/sales-api/sales-api
-app/services/metrics/metrics
-app/tooling/sales-admin/sales-admin
-app/tooling/sales-admin/logfmt
-
-# Mac
-.DS_Store
-
-# Backup files
-*~*
-
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
 *.a
@@ -18,11 +6,7 @@ app/tooling/sales-admin/logfmt
 # Folders
 _obj
 _test
-
-# Editor files
-.idea/
-*.iml
-*.swp
+vendor
 
 # Architecture specific extensions/prefixes
 *.[568vq]
@@ -37,5 +21,12 @@ _cgo_export.*
 _testmain.go
 
 *.exe
-//*.test
-.vscode/tasks.json
+*.test
+*.prof
+*.pprof
+*.out
+*.log
+
+/bin
+cover.out
+cover.html
